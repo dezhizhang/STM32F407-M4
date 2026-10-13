@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
-# 一键编译 + 烧录（ST-Link/DAP 经 openocd.cfg 选择）
+# 一键编译 + 烧录（兼容入口，逻辑见 Makefile 的 flash 目标）
 set -euo pipefail
 cd "$(dirname "$0")/.."
-
-BUILD_DIR=build
-ELF="$BUILD_DIR/STM32F407_M4.elf"
-
-cmake --build "$BUILD_DIR"
-openocd -f openocd.cfg -c "program $ELF verify reset exit"
+exec make flash "$@"

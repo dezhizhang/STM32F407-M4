@@ -23,38 +23,36 @@
 ├── Drivers/             ST 官方库（vendor，勿手改）
 │   ├── CMSIS/           内核头文件 + 器件支持包（含启动文件）
 │   └── STM32F4xx_HAL_Driver/
+├── Makefile             make / make flash 快捷入口
 ├── cmake/               交叉编译工具链文件
 ├── stm32f407zgtx.ld     链接脚本（1MB Flash / 128K RAM / 64K CCMRAM）
 ├── openocd.cfg          OpenOCD 烧录调试配置（ST-Link / DAP 可切换）
 └── tools/flash.sh       一键编译烧录脚本
 ```
 
-## 构建
+## 构建 / 烧录（make）
 
 ```bash
-# 首次配置（工具链文件必须绝对/相对路径传入）
-cmake -B build -DCMAKE_TOOLCHAIN_FILE=cmake/stm32-toolchain.cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug
-
-# 编译（输出 build/STM32F407_M4.elf/.hex/.bin + .map）
-cmake --build build
+make            # 编译（首次自动 configure，输出 build/STM32F407_M4.elf/.hex/.bin）
+make flash      # 编译 + 烧录 + 复位运行
+make erase      # 整片擦除 Flash
+make size       # 打印 Flash/RAM 占用
+make monitor    # 串口终端（自动探测 CH340G 设备名）
+make debug      # 启动 OpenOCD GDB server（:3333，另开终端跑 make gdb）
+make gdb        # arm-none-eabi-gdb 连接调试
+make clean      # 删除 build/
+make rebuild    # 全量重编
 ```
 
-> Debug 用 `-Og -g3` 便于调试，Release 用 `-O2`。
+> 切换构建类型：`make clean && make BUILD_TYPE=Release`（Debug 用 `-Og -g3`，Release 用 `-O2`）。
+> 调试器默认 **ST-Link**；用 DAP-Link（ATK-DAP）的话改 `openocd.cfg` 里 interface 那两行。
 
-## 烧录 / 调试
-
-调试器默认 **ST-Link**；用 DAP-Link（ATK-DAP）的话改 `openocd.cfg` 里 interface 那两行。
+底层仍是 CMake + Ninja，也可手动：
 
 ```bash
-# 一键编译烧录
-./tools/flash.sh
-
-# 或手动烧录
+cmake -B build -DCMAKE_TOOLCHAIN_FILE=cmake/stm32-toolchain.cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug
+cmake --build build
 openocd -f openocd.cfg -c "program build/STM32F407_M4.elf verify reset exit"
-
-# 命令行 GDB 调试（另开终端）
-openocd -f openocd.cfg
-arm-none-eabi-gdb build/STM32F407_M4.elf -ex 'target remote :3333' -ex 'monitor reset halt'
 ```
 
 VSCode 用户推荐 **Cortex-Debug** 插件（`servertype: openocd`，configFiles 指向本目录 `openocd.cfg`）。
