@@ -1,0 +1,3 @@
+# clangd 配置：从 build/ 读编译数据库（cmake 配置后生效）
+CompileFlags:
+  CompilationDatabase: build
