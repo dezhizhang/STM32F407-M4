@@ -20,5 +20,8 @@ cmake-build-*/
 compile_commands.json
 .clang-format++
 
+# Claude Code 本地个人配置（defaultMode 等只对本机生效）
+.claude/settings.local.json
+
 # macOS
 .DS_Store
